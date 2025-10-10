@@ -1,0 +1,90 @@
+# =========================
+# Python 기본
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 가상환경
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# 빌드 & 배포 관련
+build/
+dist/
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# 로그, 캐시 등
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+.cache/
+.ipynb_checkpoints/
+.pytest_cache/
+migrations/
+.coverage
+htmlcov/
+*.sqlite3
+
+# =========================
+# IDE / Editor 관련
+# =========================
+
+# VSCode
+.vscode/
+.code-workspace
+
+# PyCharm
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# =========================
+# OS 관련
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# 기타 (선택)
+# =========================
+
+# 환경 변수 파일 (API 키, 비밀번호 등)
+.env
+.env.*
+
+# 데이터 파일 (필요 시만 추가)
+*.csv
+*.tsv
+*.json
+*.pkl
+*.h5
+*.mp4
+*.wav
+*.mp3
+
+# Checkpoint / 모델 가중치
+*.ckpt
+*.pth
+*.pt
+*.onnx
+
+# Export / 결과물 폴더
+exports/
+results/
+output/
+outputs/
+runs/
