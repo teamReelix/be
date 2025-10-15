@@ -80,9 +80,10 @@
             background-color: #2c2c2c;
             min-height: 50px;
             display: flex;
+            flex-direction: column; /* 세로 정렬을 위해 추가 */
             align-items: center;
             justify-content: center;
-            text-align: left;
+            text-align: center; /* 텍스트 중앙 정렬 */
             line-height: 1.5;
         }
         .spinner {
@@ -92,7 +93,7 @@
             border-radius: 50%;
             border-left-color: #64b5f6;
             animation: spin 1s ease infinite;
-            margin-right: 10px;
+            margin-bottom: 10px; /* 텍스트와의 간격 */
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -104,6 +105,23 @@
         }
         a > button:hover {
             background-color: #a5d6a7;
+        }
+        /* 오류 메시지를 보기 좋게 표시하기 위한 스타일 추가 */
+        pre {
+            background-color: #111;
+            color: #ff7675;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -131,7 +149,6 @@
         const fileNameSpan = document.getElementById('file-name');
         const dropArea = document.getElementById('drop-area');
 
-        // --- 파일 선택 및 드래그 앤 드롭 UI 로직 ---
         videoFileInput.addEventListener('change', () => {
             const file = videoFileInput.files[0];
             if (file) {
@@ -165,8 +182,6 @@
             videoFileInput.dispatchEvent(new Event('change'));
         }, false);
 
-
-        // --- 폼 제출 로직 ---
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -178,7 +193,6 @@
             statusDiv.innerHTML = '<div class="spinner"></div><p>동영상을 서버로 업로드하는 중입니다...</p>';
 
             try {
-                // 1. 파일 업로드 요청
                 const response = await fetch('/upload-video/', {
                     method: 'POST',
                     body: formData,
@@ -188,7 +202,6 @@
 
                 if (response.status === 202) {
                     statusDiv.innerHTML = `<p>${result.message}<br>결과 파일명: <strong>${result.result_filename}</strong></p>`;
-                    // 2. 결과 확인 폴링 시작
                     pollForResult(result.check_status_url, result.result_filename);
                 } else {
                     throw new Error(result.detail || '알 수 없는 오류가 발생했습니다.');
@@ -199,24 +212,39 @@
             }
         });
 
-        // --- 결과 확인 폴링 함수 ---
+        // --- 결과 확인 폴링 함수 (수정) ---
         function pollForResult(url, filename) {
             statusDiv.innerHTML = '<div class="spinner"></div><p>하이라이트를 생성하고 있습니다. 잠시만 기다려주세요...</p>';
 
             const interval = setInterval(async () => {
                 try {
                     const response = await fetch(url);
-                    if (response.status === 200) { // 200 OK: 파일 발견
+
+                    if (response.status === 200) { // 성공 또는 오류 파일 발견
                         clearInterval(interval);
+
+                        const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.includes("video/mp4")) {
+                        // 성공
                         statusDiv.innerHTML = `
-                            <p style="color: #81c784;"><strong>하이라이트 생성 완료!</strong></p>
-                            <a href="${url}" download="${filename}" style="display: inline-block; margin-top: 10px;">
-                                <button>${filename} 다운로드</button>
-                            </a>`;
+                            <div>
+                                <p style="color: #81c784; margin-bottom: 15px;"><strong>하이라이트 생성 완료!</strong></p>
+                                <a href="${url}" download="${filename}" title="파일 다운로드: ${filename}">
+                                    <button>다운로드</button>
+                                </a>
+                            </div>`;
+                    } else {
+                        // 오류 파일 수신
+                        const errorText = await response.text();
+                            statusDiv.innerHTML = `
+                                <p style="color: #ff7675;"><strong>생성 실패:</strong> 백엔드에서 오류가 발생했습니다.</p>
+                                <pre>${escapeHtml(errorText)}</pre>`;
+                        }
                         resetUI();
+
                     } else if (response.status === 404) { // 404 Not Found: 아직 처리 중
                         console.log('아직 처리 중...');
-                    } else {
+                    } else { // 기타 서버 오류
                         throw new Error(`서버 응답 오류: ${response.status}`);
                     }
                 } catch (error) {
@@ -232,6 +260,16 @@
             submitButton.disabled = false;
             fileNameSpan.textContent = '선택된 파일 없음';
             submitButton.disabled = true;
+        }
+
+        // HTML 태그를 텍스트로 표시하기 위한 유틸리티 함수
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
         }
     </script>
 </body>
