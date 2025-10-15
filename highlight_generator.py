@@ -1,4 +1,4 @@
-import os, re, glob, json, math, tempfile, subprocess, random
+import os, re, glob, json, math, tempfile, subprocess, random, time
 import numpy as np
 import torch, torch.nn as nn, torch.nn.functional as F
 import torchaudio, librosa
@@ -87,14 +87,6 @@ def load_model(ckpt_dir=CKPT_DIR):
 
 model = load_model()
 
-
-
-
-import json, os, tempfile, subprocess, numpy as np, torch
-import torch.nn.functional as F
-import librosa
-from decord import VideoReader, cpu
-
 def _safe_json_dump(obj, path):
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
@@ -182,12 +174,7 @@ def score_temp_clip(tmp_path, win_sec):
     return float(p)
 
 
-import time  # 파일 상단에 추가
-
-
 def score_window(full_mp4, start_sec, win_sec=WIN_SEC):
-    import tempfile, subprocess, os
-
     # --- 시간 측정 시작 ---
     t_start = time.time()
 
@@ -224,10 +211,6 @@ def score_window(full_mp4, start_sec, win_sec=WIN_SEC):
             pass
 
     return s
-
-
-
-import numpy as np, librosa, tempfile, subprocess
 
 def smooth_scores(scores, k=3):
     if k<=1: return scores
@@ -302,9 +285,6 @@ def pick_segments_under_budget(cands, target_sec, min_gap=2.0,
     picked.sort(key=lambda x: x[0])
     return picked, used
 
-
-
-
 def cut_segment(mp4, start, end, out_path):
     dur = max(0.1, end - start)
     cmd = [
@@ -316,9 +296,6 @@ def cut_segment(mp4, start, end, out_path):
         "-y", out_path
     ]
     subprocess.run(cmd, check=True)
-
-import tempfile
-import subprocess
 
 def concat_mp4s(paths, out_path):
     # ffmpeg concat demuxer (파일 리스트)
@@ -423,9 +400,6 @@ def _recenter_cut_times_by_audio(full_mp4, st, ed, duration,
         end_cut   = min(duration, end_cut + lack/2)
 
     return float(start_cut), float(end_cut)
-
-
-
 
 def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
                                    win_sec=15.0, stride_sec=7.0,
@@ -538,25 +512,31 @@ def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
     print(f"✅ DONE: {out_mp4}")
     return out_mp4, picked, list(zip(starts, scores)), s_smooth
 
+# 이 스크립트가 직접 실행될 때만 아래 테스트 코드가 동작하도록 수정합니다.
+if __name__ == "__main__":
+    # 이 블록 안의 코드는 `import highlight_generator`로는 실행되지 않습니다.
+    # 스크립트를 직접 테스트하고 싶을 때 `python highlight_generator.py`로 실행하면 됩니다.
+    FULL_MP4 = "./test_videos/2017-01-14_-_18-15_Barcelona_5_-_0_Las_Palmas.mkv"
 
+    # 테스트 비디오 파일이 없으면 에러를 발생시키지 않도록 존재 여부 확인
+    if os.path.exists(FULL_MP4):
+        print("--- Running Test ---")
+        out_path, picked_segments, raw_scores, smooth_scores_arr = export_highlight_from_full_mp4(
+            full_mp4_path=FULL_MP4,
+            target_minutes=6,      # 6분
+            win_sec=15.0,          # 점수용 창
+            stride_sec=10.0,
+            smooth_k=3,
+            nms_gap=14.0,
+            top_k=None,
+            min_gap_between=2.0,
+            align_to_audio_onset=True,
+            onset_pre_sec=15.0,    # onset 이전 13초
+            onset_post_sec=10.0,    # onset 이후 7초 (총 20초)
+            search_back_sec=10.0,
+            search_fwd_sec=10.0
+        )
+        print("DONE:", out_path)
+    else:
+        print(f"--- Test Skipped: Video file not found at {FULL_MP4} ---")
 
-
-
-FULL_MP4 = "./test_videos/2017-01-14_-_18-15_Barcelona_5_-_0_Las_Palmas.mkv"
-
-out_path, picked_segments, raw_scores, smooth_scores_arr = export_highlight_from_full_mp4(
-    full_mp4_path=FULL_MP4,
-    target_minutes=6,      # 6분
-    win_sec=15.0,          # 점수용 창
-    stride_sec=10.0,
-    smooth_k=3,
-    nms_gap=14.0,
-    top_k=None,
-    min_gap_between=2.0,
-    align_to_audio_onset=True,
-    onset_pre_sec=15.0,    # onset 이전 13초
-    onset_post_sec=10.0,    # onset 이후 7초 (총 20초)
-    search_back_sec=10.0,
-    search_fwd_sec=10.0
-)
-print("DONE:", out_path)

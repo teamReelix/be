@@ -1,40 +1,239 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>축구 하이라이트 생성기</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비디오 하이라이트 생성기</title>
+    <style>
+        /* 다크 모드 테마 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121212; /* 어두운 배경색 */
+            color: #e0e0e0; /* 밝은 글자색 */
+        }
+        .container {
+            background: #1e1e1e; /* 본문 배경색 */
+            padding: 2rem 3rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #333;
+        }
+        h1 {
+            color: #64b5f6; /* 제목 색상 (하늘색) */
+            margin-bottom: 1.5rem;
+        }
+        #upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .file-input-wrapper {
+            border: 2px dashed #444;
+            border-radius: 8px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .file-input-wrapper:hover, .file-input-wrapper.dragover {
+             background-color: #2a2a2a;
+             border-color: #64b5f6;
+        }
+        #video-file {
+            display: none;
+        }
+        #file-name {
+            margin-top: 1rem;
+            font-weight: 500;
+            color: #aaa;
+        }
+        button {
+            background-color: #64b5f6;
+            color: #121212;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        button:disabled {
+            background-color: #444;
+            color: #777;
+            cursor: not-allowed;
+        }
+        button:not(:disabled):hover {
+            background-color: #82e9de;
+        }
+        #status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #2c2c2c;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #64b5f6;
+            animation: spin 1s ease infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        a > button {
+             background-color: #81c784; /* 다운로드 버튼 (녹색) */
+             color: #121212;
+        }
+        a > button:hover {
+            background-color: #a5d6a7;
+        }
+    </style>
 </head>
 <body>
-    <h1>축구 영상 업로드</h1>
-    <input type="file" id="videoFile">
-    <button onclick="uploadVideo()">하이라이트 생성 시작</button>
-    <p id="status"></p>
-    <div id="result"></div>
+    <div class="container">
+        <h1>AI 비디오 하이라이트</h1>
+        <form id="upload-form">
+            <label for="video-file" class="file-input-wrapper" id="drop-area">
+                <p>업로드할 동영상 파일을 여기에 드래그하거나 클릭하세요.</p>
+                <span id="file-name">선택된 파일 없음</span>
+            </label>
+            <input type="file" id="video-file" name="video" accept="video/mp4,video/x-m4v,video/*" required>
+            <button type="submit" id="submit-button" disabled>하이라이트 생성 시작</button>
+        </form>
+        <div id="status">
+            <p>하이라이트 생성을 시작하려면 동영상을 업로드하세요.</p>
+        </div>
+    </div>
+
     <script>
-        async function uploadVideo() {
-            const fileInput = document.getElementById('videoFile');
-            const statusElem = document.getElementById('status');
-            const resultElem = document.getElementById('result');
+        const form = document.getElementById('upload-form');
+        const videoFileInput = document.getElementById('video-file');
+        const submitButton = document.getElementById('submit-button');
+        const statusDiv = document.getElementById('status');
+        const fileNameSpan = document.getElementById('file-name');
+        const dropArea = document.getElementById('drop-area');
+
+        // --- 파일 선택 및 드래그 앤 드롭 UI 로직 ---
+        videoFileInput.addEventListener('change', () => {
+            const file = videoFileInput.files[0];
+            if (file) {
+                fileNameSpan.textContent = `선택된 파일: ${file.name}`;
+                submitButton.disabled = false;
+            } else {
+                fileNameSpan.textContent = '선택된 파일 없음';
+                submitButton.disabled = true;
+            }
+        });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            videoFileInput.files = e.dataTransfer.files;
+            videoFileInput.dispatchEvent(new Event('change'));
+        }, false);
+
+
+        // --- 폼 제출 로직 ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
             const formData = new FormData();
-            formData.append('video', fileInput.files[0]);
+            formData.append('video', videoFileInput.files[0]);
 
-            statusElem.textContent = '업로드 및 처리 중... (시간이 오래 걸릴 수 있습니다)';
-            resultElem.innerHTML = '';
+            submitButton.disabled = true;
+            submitButton.textContent = '업로드 중...';
+            statusDiv.innerHTML = '<div class="spinner"></div><p>동영상을 서버로 업로드하는 중입니다...</p>';
 
-            // FastAPI의 /upload-video/ API 호출
-            const response = await fetch('/upload-video/', {
-                method: 'POST',
-                body: formData
-            });
+            try {
+                // 1. 파일 업로드 요청
+                const response = await fetch('/upload-video/', {
+                    method: 'POST',
+                    body: formData,
+                });
 
-            const data = await response.json();
+                const result = await response.json();
 
-            statusElem.textContent = data.message;
+                if (response.status === 202) {
+                    statusDiv.innerHTML = `<p>${result.message}<br>결과 파일명: <strong>${result.result_filename}</strong></p>`;
+                    // 2. 결과 확인 폴링 시작
+                    pollForResult(result.check_status_url, result.result_filename);
+                } else {
+                    throw new Error(result.detail || '알 수 없는 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<p style="color: #ff7675;"><strong>오류 발생:</strong> ${error.message}</p>`;
+                resetUI();
+            }
+        });
 
-            // 결과 파일 다운로드 링크 생성
-            const resultLink = `<a href="/get-highlight/${data.result_filename}" download>${data.result_filename} 다운로드</a>`;
-            resultElem.innerHTML = resultLink + '<p>파일이 아직 준비되지 않았다면 잠시 후 다시 시도해주세요.</p>';
+        // --- 결과 확인 폴링 함수 ---
+        function pollForResult(url, filename) {
+            statusDiv.innerHTML = '<div class="spinner"></div><p>하이라이트를 생성하고 있습니다. 잠시만 기다려주세요...</p>';
+
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(url);
+                    if (response.status === 200) { // 200 OK: 파일 발견
+                        clearInterval(interval);
+                        statusDiv.innerHTML = `
+                            <p style="color: #81c784;"><strong>하이라이트 생성 완료!</strong></p>
+                            <a href="${url}" download="${filename}" style="display: inline-block; margin-top: 10px;">
+                                <button>${filename} 다운로드</button>
+                            </a>`;
+                        resetUI();
+                    } else if (response.status === 404) { // 404 Not Found: 아직 처리 중
+                        console.log('아직 처리 중...');
+                    } else {
+                        throw new Error(`서버 응답 오류: ${response.status}`);
+                    }
+                } catch (error) {
+                    clearInterval(interval);
+                    statusDiv.innerHTML = `<p style="color: #ff7675;"><strong>결과 확인 중 오류:</strong> ${error.message}</p>`;
+                    resetUI();
+                }
+            }, 3000); // 3초마다 확인
+        }
+
+        function resetUI() {
+            submitButton.textContent = '하이라이트 생성 시작';
+            submitButton.disabled = false;
+            fileNameSpan.textContent = '선택된 파일 없음';
+            submitButton.disabled = true;
         }
     </script>
 </body>
 </html>
+
