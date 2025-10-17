@@ -1,0 +1,15 @@
+# FastAPI 웹 프레임워크 및 관련 도구
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+
+# 머신러닝 및 오디오 처리
+torch
+torchaudio
+librosa
+scikit-learn
+numpy
+
+# 그 외 유틸리티
+python-dotenv  # .env 파일을 사용한다면 필요합니다.

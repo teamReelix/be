@@ -1,0 +1,19 @@
+# 가상환경 폴더 제외
+.venv
+venv
+
+# 파이썬 캐시 파일 제외
+__pycache__/
+*.pyc
+
+# IDE 및 Git 관련 폴더 제외
+.vscode/
+.idea/
+.git/
+
+# 기타 불필요한 파일/폴더 (필요에 따라 추가)
+*.mp4
+*.mkv
+exports/
+test_videos/
+videos/
