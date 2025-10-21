@@ -127,19 +127,34 @@
 </head>
 <body>
     <div class="container">
-        <h1>AI 비디오 하이라이트</h1>
-        <form id="upload-form">
-            <label for="video-file" class="file-input-wrapper" id="drop-area">
-                <p>업로드할 동영상 파일을 여기에 드래그하거나 클릭하세요.</p>
-                <span id="file-name">선택된 파일 없음</span>
-            </label>
-            <input type="file" id="video-file" name="video" accept="video/mp4,video/x-m4v,video/*" required>
-            <button type="submit" id="submit-button" disabled>하이라이트 생성 시작</button>
-        </form>
-        <div id="status">
-            <p>하이라이트 생성을 시작하려면 동영상을 업로드하세요.</p>
+    <h1>AI 비디오 하이라이트</h1>
+    <form id="upload-form">
+        <label for="video-file" class="file-input-wrapper" id="drop-area">
+            <p>업로드할 동영상 파일을 여기에 드래그하거나 클릭하세요.</p>
+            <span id="file-name">선택된 파일 없음</span>
+        </label>
+        <input type="file" id="video-file" name="video" accept="video/mp4,video/x-m4v,video/*" required>
+
+        <div style="margin-top: 1rem; text-align: left;">
+            <label for="target-minutes" style="font-weight: 500; color: #ccc;">하이라이트 길이 (분)</label><br>
+            <input
+                type="number"
+                id="target-minutes"
+                name="target_minutes"
+                min="1"
+                max="30"
+                value="5"
+                required
+                style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
+                       border: 1px solid #555; background-color: #1e1e1e; color: #e0e0e0;">
         </div>
+
+        <button type="submit" id="submit-button" disabled>하이라이트 생성 시작</button>
+    </form>
+    <div id="status">
+        <p>하이라이트 생성을 시작하려면 동영상을 업로드하세요.</p>
     </div>
+</div>
 
     <script>
         const form = document.getElementById('upload-form');
@@ -187,6 +202,8 @@
 
             const formData = new FormData();
             formData.append('video', videoFileInput.files[0]);
+            const targetMinutes = document.getElementById('target-minutes').value;
+            formData.append('target_minutes', targetMinutes);
 
             submitButton.disabled = true;
             submitButton.textContent = '업로드 중...';
@@ -274,4 +291,3 @@
     </script>
 </body>
 </html>
-

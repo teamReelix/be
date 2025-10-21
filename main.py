@@ -2,7 +2,7 @@ import os
 import shutil
 import uuid  # 고유한 파일명을 만들기 위해 import
 import logging
-from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Request
+from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Request, Form
 from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -58,7 +58,8 @@ async def read_index(request: Request):
 @app.post("/upload-video/")
 async def upload_video_for_highlight(
         background_tasks: BackgroundTasks,
-        video: UploadFile = File(...)
+        video: UploadFile = File(...),
+        target_minutes: int = Form(5)  # ✅ 기본값 5분, 프론트에서 넘어오면 그 값으로 덮어씀
 ):
     """
     사용자로부터 비디오를 업로드받아 백그라운드에서 하이라이트 생성을 시작합니다.
@@ -71,7 +72,6 @@ async def upload_video_for_highlight(
     original_filename = video.filename
     base, ext = os.path.splitext(original_filename)
 
-    # 한글 등 비-아스키 파일명을 안전하게 처리
     safe_base = "".join(c for c in base if c.isalnum() or c in (' ', '_')).rstrip()
     input_filename = f"{safe_base}_{unique_id}{ext}"
     input_path = os.path.join(VIDEO_DIR, input_filename)
@@ -84,23 +84,21 @@ async def upload_video_for_highlight(
         logger.error(f"영상 저장 실패: {e}")
         raise HTTPException(status_code=500, detail="영상 파일을 저장하는 중 오류가 발생했습니다.")
 
-
-    # 2. 백그라운드 작업으로 하이라이트 생성 함수 실행
-    target_minutes = 5  # 예시: 5분짜리 하이라이트
+    # ✅ 프론트에서 전달된 하이라이트 길이를 그대로 사용
     background_tasks.add_task(
         hg.export_highlight_from_full_mp4,
         full_mp4_path=input_path,
         target_minutes=target_minutes
     )
 
-    # 3. 사용자에게 즉시 응답 반환
+    # 결과 파일 이름 구성
     out_base = os.path.splitext(input_filename)[0]
     result_filename = f"{out_base}_HIGHLIGHT_{target_minutes}m.mp4"
 
     return JSONResponse(
-        status_code=202,  # 202 Accepted: 요청이 접수되었고 처리 중임을 의미
+        status_code=202,
         content={
-            "message": "영상 업로드 성공! 하이라이트 생성을 시작합니다.",
+            "message": f"영상 업로드 성공! {target_minutes}분짜리 하이라이트 생성을 시작합니다.",
             "original_filename": original_filename,
             "result_filename": result_filename,
             "check_status_url": f"/get-highlight/{result_filename}"
