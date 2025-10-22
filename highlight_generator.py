@@ -498,7 +498,7 @@ def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
 
     # 5) concat (Resume)
     if os.path.exists(out_mp4) and os.path.getsize(out_mp4) > 0:
-        logger.info(f"✅ skip concat (exists): {out_mp4}")
+        logger.info(f"skip concat (exists): {out_mp4}")
     else:
         concat_mp4s(tmp_parts, out_mp4)
 
