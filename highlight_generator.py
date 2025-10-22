@@ -72,7 +72,7 @@ def load_model(ckpt_dir=CKPT_DIR):
     alias = os.path.join(ckpt_dir, "best.pt")
     if os.path.exists(alias):
         ckpt = torch.load(alias, map_location=device, weights_only=False)
-        print("Loaded:", alias)
+        logger.info("Loaded:", alias)
     else:
         cand = sorted(glob.glob(os.path.join(ckpt_dir, "best_ep*_auc*.pt")))
         assert cand, "ckpts 폴더에 가중치가 없습니다."
@@ -202,7 +202,7 @@ def score_window(full_mp4, start_sec, win_sec=WIN_SEC):
         t_model_end = time.time()
 
         # --- 시간 측정 결과 출력 ---
-        logger.debug(
+        logger.info(
             f"[{start_sec:.2f}s] FFMPEG 클립 생성: {t_ffmpeg_end - t_ffmpeg_start:.4f}초 / 모델 예측: {t_model_end - t_ffmpeg_end:.4f}초"
         )
 

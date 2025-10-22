@@ -157,137 +157,133 @@
 </div>
 
     <script>
-        const form = document.getElementById('upload-form');
-        const videoFileInput = document.getElementById('video-file');
-        const submitButton = document.getElementById('submit-button');
-        const statusDiv = document.getElementById('status');
-        const fileNameSpan = document.getElementById('file-name');
-        const dropArea = document.getElementById('drop-area');
+    const form = document.getElementById('upload-form');
+    const videoFileInput = document.getElementById('video-file');
+    const submitButton = document.getElementById('submit-button');
+    const statusDiv = document.getElementById('status');
+    const fileNameSpan = document.getElementById('file-name');
+    const dropArea = document.getElementById('drop-area');
 
-        videoFileInput.addEventListener('change', () => {
-            const file = videoFileInput.files[0];
-            if (file) {
-                fileNameSpan.textContent = `선택된 파일: ${file.name}`;
-                submitButton.disabled = false;
-            } else {
-                fileNameSpan.textContent = '선택된 파일 없음';
-                submitButton.disabled = true;
-            }
-        });
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
-        });
-
-        dropArea.addEventListener('drop', (e) => {
-            videoFileInput.files = e.dataTransfer.files;
-            videoFileInput.dispatchEvent(new Event('change'));
-        }, false);
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const formData = new FormData();
-            formData.append('video', videoFileInput.files[0]);
-            const targetMinutes = document.getElementById('target-minutes').value;
-            formData.append('target_minutes', targetMinutes);
-
-            submitButton.disabled = true;
-            submitButton.textContent = '업로드 중...';
-            statusDiv.innerHTML = '<div class="spinner"></div><p>동영상을 서버로 업로드하는 중입니다...</p>';
-
-            try {
-                const response = await fetch('/upload-video/', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                const result = await response.json();
-
-                if (response.status === 202) {
-                    statusDiv.innerHTML = `<p>${result.message}<br>결과 파일명: <strong>${result.result_filename}</strong></p>`;
-                    pollForResult(result.check_status_url, result.result_filename);
-                } else {
-                    throw new Error(result.detail || '알 수 없는 오류가 발생했습니다.');
-                }
-            } catch (error) {
-                statusDiv.innerHTML = `<p style="color: #ff7675;"><strong>오류 발생:</strong> ${error.message}</p>`;
-                resetUI();
-            }
-        });
-
-        // --- 결과 확인 폴링 함수 (수정) ---
-        function pollForResult(url, filename) {
-            statusDiv.innerHTML = '<div class="spinner"></div><p>하이라이트를 생성하고 있습니다. 잠시만 기다려주세요...</p>';
-
-            const interval = setInterval(async () => {
-                try {
-                    const response = await fetch(url);
-
-                    if (response.status === 200) { // 성공 또는 오류 파일 발견
-                        clearInterval(interval);
-
-                        const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.includes("video/mp4")) {
-                        // 성공
-                        statusDiv.innerHTML = `
-                            <div>
-                                <p style="color: #81c784; margin-bottom: 15px;"><strong>하이라이트 생성 완료!</strong></p>
-                                <a href="${url}" download="${filename}" title="파일 다운로드: ${filename}">
-                                    <button>다운로드</button>
-                                </a>
-                            </div>`;
-                    } else {
-                        // 오류 파일 수신
-                        const errorText = await response.text();
-                            statusDiv.innerHTML = `
-                                <p style="color: #ff7675;"><strong>생성 실패:</strong> 백엔드에서 오류가 발생했습니다.</p>
-                                <pre>${escapeHtml(errorText)}</pre>`;
-                        }
-                        resetUI();
-
-                    } else if (response.status === 404) { // 404 Not Found: 아직 처리 중
-                        console.log('아직 처리 중...');
-                    } else { // 기타 서버 오류
-                        throw new Error(`서버 응답 오류: ${response.status}`);
-                    }
-                } catch (error) {
-                    clearInterval(interval);
-                    statusDiv.innerHTML = `<p style="color: #ff7675;"><strong>결과 확인 중 오류:</strong> ${error.message}</p>`;
-                    resetUI();
-                }
-            }, 3000); // 3초마다 확인
-        }
-
-        function resetUI() {
-            submitButton.textContent = '하이라이트 생성 시작';
+    videoFileInput.addEventListener('change', () => {
+        const file = videoFileInput.files[0];
+        if (file) {
+            fileNameSpan.textContent = `선택된 파일: ${file.name}`;
             submitButton.disabled = false;
+        } else {
             fileNameSpan.textContent = '선택된 파일 없음';
             submitButton.disabled = true;
         }
+    });
 
-        // HTML 태그를 텍스트로 표시하기 위한 유틸리티 함수
-        function escapeHtml(unsafe) {
-            return unsafe
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+        videoFileInput.files = e.dataTransfer.files;
+        videoFileInput.dispatchEvent(new Event('change'));
+    }, false);
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append('video', videoFileInput.files[0]);
+        const targetMinutes = document.getElementById('target-minutes').value;
+        formData.append('target_minutes', targetMinutes);
+
+        submitButton.disabled = true;
+        submitButton.textContent = '업로드 중...';
+        statusDiv.innerHTML = '<div class="spinner"></div><p>동영상을 서버로 업로드하는 중입니다...</p>';
+
+        try {
+            const response = await fetch('/upload-video/', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.status === 202) {
+                statusDiv.innerHTML = `<p>${result.message}<br>결과 파일명: <strong>${result.result_filename}</strong></p>`;
+                pollForResult(result.check_status_url, result.result_filename);
+            } else {
+                throw new Error(result.detail || '알 수 없는 오류가 발생했습니다.');
+            }
+        } catch (error) {
+            statusDiv.innerHTML = `<p style="color: #ff7675;"><strong>오류 발생:</strong> ${error.message}</p>`;
+            resetUI();
         }
+    });
+
+    // --- 결과 확인 폴링 함수 (수정: 5초마다) ---
+    function pollForResult(url, filename) {
+        statusDiv.innerHTML = '<div class="spinner"></div><p>하이라이트를 생성하고 있습니다. 잠시만 기다려주세요...</p>';
+
+        const interval = setInterval(async () => {
+            try {
+                const response = await fetch(url);
+
+                if (response.status === 200) { // presigned URL 반환
+                    clearInterval(interval);
+                    const result = await response.json();
+
+                    if (result.status === "done" && result.s3_url) {
+                        // 다운로드 버튼 생성
+                        statusDiv.innerHTML = `
+                            <div>
+                                <p style="color: #81c784; margin-bottom: 15px;"><strong>하이라이트 생성 완료!</strong></p>
+                                <a href="${result.s3_url}" download="${filename}" title="파일 다운로드: ${filename}">
+                                    <button>다운로드</button>
+                                </a>
+                            </div>`;
+                        resetUI();
+                    } else {
+                        statusDiv.innerHTML = `<p>아직 하이라이트가 처리 중입니다...</p>`;
+                    }
+
+                } else if (response.status === 404) { // 아직 처리 중
+                    console.log('아직 처리 중...');
+                } else { // 기타 서버 오류
+                    throw new Error(`서버 응답 오류: ${response.status}`);
+                }
+            } catch (error) {
+                clearInterval(interval);
+                statusDiv.innerHTML = `<p style="color: #ff7675;"><strong>결과 확인 중 오류:</strong> ${error.message}</p>`;
+                resetUI();
+            }
+        }, 5000); // ✅ 5초마다 확인
+    }
+
+    function resetUI() {
+        submitButton.textContent = '하이라이트 생성 시작';
+        submitButton.disabled = true;
+        fileNameSpan.textContent = '선택된 파일 없음';
+    }
+
+    // HTML 태그를 텍스트로 표시하기 위한 유틸리티 함수
+    function escapeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
     </script>
+
 </body>
 </html>
