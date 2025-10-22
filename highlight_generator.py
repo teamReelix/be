@@ -3,6 +3,9 @@ import numpy as np
 import torch, torch.nn as nn, torch.nn.functional as F
 import torchaudio, librosa
 from decord import VideoReader, cpu
+import logging
+
+logger = logging.getLogger(__name__)
 
 # === 경로 ===
 CKPT_DIR  = "./ckpts"     # 이미 학습된 체크포인트 폴더
@@ -78,7 +81,7 @@ def load_model(ckpt_dir=CKPT_DIR):
             return float(m.group(1)) if m else -1.0
         best_path = max(cand, key=auc_from)
         ckpt = torch.load(best_path, map_location=device, weights_only=False)
-        print("Loaded:", best_path)
+        logger.info(f"Loaded: {best_path}")
 
     state = ckpt["model"] if isinstance(ckpt, dict) and "model" in ckpt else ckpt
     model.load_state_dict(state, strict=True)
@@ -199,8 +202,9 @@ def score_window(full_mp4, start_sec, win_sec=WIN_SEC):
         t_model_end = time.time()
 
         # --- 시간 측정 결과 출력 ---
-        print(
-            f"[{start_sec:.2f}s] FFMPEG 클립 생성: {t_ffmpeg_end - t_ffmpeg_start:.4f}초 / 모델 예측: {t_model_end - t_ffmpeg_end:.4f}초")
+        logger.debug(
+            f"[{start_sec:.2f}s] FFMPEG 클립 생성: {t_ffmpeg_end - t_ffmpeg_start:.4f}초 / 모델 예측: {t_model_end - t_ffmpeg_end:.4f}초"
+        )
 
     except subprocess.CalledProcessError:
         s = 0.0
@@ -416,7 +420,7 @@ def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
 
     duration = ffprobe_duration(full_mp4_path)
     if duration is None or duration <= 0:
-        raise RuntimeError(f"⚠️ duration 읽기 실패. 경로/코덱/마운트 상태를 확인하세요.\n{full_mp4_path}")
+        raise RuntimeError(f"duration 읽기 실패. 경로/코덱/마운트 상태를 확인하세요.\n{full_mp4_path}")
 
     # 1) 시작점
     starts=[]; t=0.0
@@ -458,7 +462,9 @@ def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
         cands, target_sec, min_gap=min_gap_between,
         onset_pre_sec=onset_pre_sec, onset_post_sec=onset_post_sec, base_win_sec=win_sec
     )
-    print(f"[INFO] 후보 {len(cands)}개 → 최종 {len(picked)}개, 총 {used:.1f}s (총 {onset_pre_sec+onset_post_sec:.0f}s 기준)")
+    logger.info(
+        f"후보 {len(cands)}개 → 최종 {len(picked)}개, 총 {used:.1f}s (총 {onset_pre_sec + onset_post_sec:.0f}s 기준)"
+    )
 
     if not picked:
         raise RuntimeError("선택된 세그먼트가 없습니다. 파라미터를 조정해보세요.")
@@ -484,7 +490,7 @@ def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
 
         part = os.path.join(OUT_DIR, f"{base}_part{k:03d}.mp4")
         if os.path.exists(part) and os.path.getsize(part) > 0:
-            print(f"  • skip cut (exists): {os.path.basename(part)}")
+            logger.info(f"  • skip cut (exists): {os.path.basename(part)}")
         else:
             cut_segment(full_mp4_path, st_cut, ed_cut, part)
         tmp_parts.append(part)
@@ -492,7 +498,7 @@ def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
 
     # 5) concat (Resume)
     if os.path.exists(out_mp4) and os.path.getsize(out_mp4) > 0:
-        print(f"✅ skip concat (exists): {out_mp4}")
+        logger.info(f"✅ skip concat (exists): {out_mp4}")
     else:
         concat_mp4s(tmp_parts, out_mp4)
 
@@ -509,7 +515,7 @@ def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
     }
     _safe_json_dump(meta, picked_meta_path)
 
-    print(f"✅ DONE: {out_mp4}")
+    logger.info(f"DONE: {out_mp4}")
     return out_mp4, picked, list(zip(starts, scores)), s_smooth
 
 # 이 스크립트가 직접 실행될 때만 아래 테스트 코드가 동작하도록 수정합니다.
@@ -520,7 +526,7 @@ if __name__ == "__main__":
 
     # 테스트 비디오 파일이 없으면 에러를 발생시키지 않도록 존재 여부 확인
     if os.path.exists(FULL_MP4):
-        print("--- Running Test ---")
+        logger.debug("--- Running Test ---")
         out_path, picked_segments, raw_scores, smooth_scores_arr = export_highlight_from_full_mp4(
             full_mp4_path=FULL_MP4,
             target_minutes=6,      # 6분
@@ -536,6 +542,6 @@ if __name__ == "__main__":
             search_back_sec=10.0,
             search_fwd_sec=10.0
         )
-        print("DONE:", out_path)
+        logger.debug("DONE:", out_path)
     else:
-        print(f"--- Test Skipped: Video file not found at {FULL_MP4} ---")
+        logger.debug(f"--- Test Skipped: Video file not found at {FULL_MP4} ---")
