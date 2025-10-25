@@ -5,6 +5,9 @@ import torchaudio, librosa
 from decord import VideoReader, cpu
 import logging
 
+from models.av_fusion import AVFusion
+from config import NUM_FRAMES
+
 logger = logging.getLogger(__name__)
 
 # === 경로 ===
@@ -19,60 +22,14 @@ SR = 16000
 MEL_BINS = 128
 WIN_SEC = 15.0      # 한 윈도우 길이 (권장: 12~20초 사이)
 STRIDE_SEC = 5.0    # 슬라이딩 간격
-NUM_FRAMES = 8      # 영상 프레임 샘플 수 (학습과 동일)
-
-
-
-class SmallAudioCNN(nn.Module):
-    def __init__(self, in_ch=1, emb=128):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Conv2d(in_ch, 32, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),
-            nn.Conv2d(32, 64, 3, 1, 1),    nn.ReLU(), nn.MaxPool2d(2),
-            nn.Conv2d(64, 128, 3, 1, 1),   nn.ReLU(), nn.AdaptiveAvgPool2d((1,1)),
-        )
-        self.fc = nn.Linear(128, emb)
-    def forward(self, x):  # (B,1,M,T)
-        h = self.net(x).flatten(1)
-        return self.fc(h)
-
-class SmallVideoCNN(nn.Module):
-    def __init__(self, emb=256):
-        super().__init__()
-        in_ch = 3*NUM_FRAMES
-        self.net = nn.Sequential(
-            nn.Conv2d(in_ch, 64, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),
-            nn.Conv2d(64, 128, 3, 1, 1),   nn.ReLU(), nn.MaxPool2d(2),
-            nn.Conv2d(128, 256, 3, 1, 1),  nn.ReLU(), nn.AdaptiveAvgPool2d((1,1)),
-        )
-        self.fc = nn.Linear(256, emb)
-    def forward(self, x):  # (B,3,T,H,W)
-        B,C,T,H,W = x.shape
-        x = x.permute(0,2,1,3,4).contiguous().view(B, C*T, H, W)
-        h = self.net(x).flatten(1)
-        return self.fc(h)
-
-class AVFusion(nn.Module):
-    def __init__(self, vemb=256, aemb=128):
-        super().__init__()
-        self.v = SmallVideoCNN(emb=vemb)
-        self.a = SmallAudioCNN(in_ch=1, emb=aemb)
-        self.head = nn.Sequential(
-            nn.Linear(vemb+aemb, 256), nn.ReLU(),
-            nn.Linear(256, 1)
-        )
-    def forward(self, xv, xa):
-        hv = self.v(xv)
-        ha = self.a(xa)
-        h  = torch.cat([hv, ha], dim=1)
-        return self.head(h).squeeze(1)
+# NUM_FRAMES = 8      # 영상 프레임 샘플 수 (학습과 동일)
 
 def load_model(ckpt_dir=CKPT_DIR):
     model = AVFusion().to(device)
     alias = os.path.join(ckpt_dir, "best.pt")
     if os.path.exists(alias):
         ckpt = torch.load(alias, map_location=device, weights_only=False)
-        logger.info("Loaded:", alias)
+        logger.info("Loaded: %s", alias)
     else:
         cand = sorted(glob.glob(os.path.join(ckpt_dir, "best_ep*_auc*.pt")))
         assert cand, "ckpts 폴더에 가중치가 없습니다."

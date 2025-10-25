@@ -1,0 +1,1 @@
+NUM_FRAMES = 8
