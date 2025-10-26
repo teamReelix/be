@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from config import VIDEO_DIR, logger
 from model import get_model
+from progress_state import progress_data, progress_lock
 from s3_utils import upload_to_s3, check_and_get_presigned_url
 from processing import process_highlight
 
@@ -45,6 +46,12 @@ async def upload_video_for_highlight(
 
     # --- 결과 파일 이름 미리 계산 ---
     result_filename = f"{os.path.splitext(input_filename)[0]}_HIGHLIGHT_{target_minutes}m.mp4"
+
+    # --- 진행률 초기화 (새 영상 업로드 시작 시) ---
+    with progress_lock:
+        progress_data["total"] = 0
+        progress_data["done"] = 0
+        progress_data["current_start"] = 0
 
     # --- 하이라이트 처리 (백그라운드) ---
     background_tasks.add_task(
