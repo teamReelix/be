@@ -32,6 +32,8 @@ form.addEventListener('submit', async (e) => {
 
         if (response.status === 202) {
             statusDiv.innerHTML = `<p>${result.message}<br>결과 파일명: <strong>${result.result_filename}</strong></p>`;
+            const uploadForm = document.getElementById('upload-form');
+            if (uploadForm) uploadForm.remove();
             startProgressPolling();
             pollForResult(result.check_status_url, result.result_filename);
         } else throw new Error(result.detail || '알 수 없는 오류가 발생했습니다.');
@@ -87,15 +89,59 @@ function pollForResult(url, filename) {
             if (res.status === 200) {
                 clearInterval(resultInterval);
                 const result = await res.json();
-                if (result.status==="done" && result.s3_url) {
-                    statusDiv.innerHTML = `<p style="color:#81c784; margin-bottom:15px;"><strong>하이라이트 생성 완료!</strong></p>
-                    <a href="${result.s3_url}" download="${filename}" title="다운로드">
-                        <button>다운로드</button>
-                    </a>`;
+                if (result.status === "done" && result.s3_url) {
+
+                    // 진행률 폴링 종료 및 스피너 제거
+                    if (progressInterval) {
+                        clearInterval(progressInterval);
+                        progressInterval = null;
+                    }
+                    const spinner = statusDiv.querySelector('.spinner');
+                    if (spinner) spinner.remove();
+                    const progressBar = statusDiv.querySelector('.progress-bar-container');
+                    if (progressBar) progressBar.remove();
+
+                    const statusElement = document.getElementById('status');
+                    if (statusElement) statusElement.remove();
+
+                    // --- ✅ 결과 영역에 출력하도록 변경 ---
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = ''; // 이전 결과 초기화
+
+                    // 완료 메시지
+                    const message = document.createElement('p');
+                    message.style.color = '#81c784';
+                    message.style.marginBottom = '10px';
+                    message.innerHTML = `<strong>하이라이트 생성 완료!</strong>`;
+                    resultDiv.appendChild(message);
+
+                    // 영상 재생
+                    const video = document.createElement('video');
+                    video.controls = true;
+                    video.style.width = '100%';
+                    video.style.marginBottom = '10px';
+                    const source = document.createElement('source');
+                    source.src = result.s3_url;
+                    source.type = 'video/mp4';
+                    video.appendChild(source);
+                    resultDiv.appendChild(video);
+
+                    // 다운로드 버튼
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = result.s3_url;
+                    downloadLink.download = filename;
+                    const downloadButton = document.createElement('button');
+                    downloadButton.textContent = '다운로드';
+                    downloadLink.appendChild(downloadButton);
+                    resultDiv.appendChild(downloadLink);
+
+                    // 파일 선택 UI 초기화
                     resetUI();
                 }
             }
-        } catch(err) { console.error('결과 확인 오류:', err); }
+        } catch (err) {
+            console.error('결과 확인 오류:', err);
+        }
     }, 5000);
 
 }
