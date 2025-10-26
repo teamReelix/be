@@ -8,6 +8,8 @@ import logging
 from models.av_fusion import AVFusion
 from config import NUM_FRAMES
 
+from progress_state import progress_data, progress_lock
+
 logger = logging.getLogger(__name__)
 
 # === 경로 ===
@@ -325,6 +327,8 @@ def _find_audio_onset_sec(y, sr, hop=512, frame_length=2048):
     onset_sec = onset_frames * hop / sr
     return onset_sec
 
+
+
 def _recenter_cut_times_by_audio(full_mp4, st, ed, duration,
                                  onset_pre_sec=13.0, onset_post_sec=7.0,
                                  search_back=10.0, search_fwd=8.0):
@@ -401,15 +405,26 @@ def export_highlight_from_full_mp4(full_mp4_path, target_minutes=8,
         else:
             todo.append(st)
 
-    print(f"[INFO] scoring windows... total={len(starts)}  todo={len(todo)} (win={win_sec}s, stride={stride_sec}s)")
+    logger.info(f"scoring windows... total={len(starts)}  todo={len(todo)} (win={win_sec}s, stride={stride_sec}s)")
     for i, st in enumerate(todo, 1):
         s = score_window(full_mp4_path, st, win_sec)
         key = f"{st:.3f}"
         score_cache[key] = float(s)
         scores[index_map[st]] = float(s)
+
+        # 진행률 로그
+        progress = (i / len(todo)) * 100
+        logger.info(f"[{st:.2f}s] scored {i}/{len(todo)} ({progress:.1f}%)")
+
+        # --- 전역 진행률 갱신 ---
+        with progress_lock:
+            progress_data["done"] = i
+            progress_data["total"] = len(todo)
+            progress_data["current_start"] = st
+
         if (i % 20)==0 or i==len(todo):
             _safe_json_dump(score_cache, scores_path)
-            print(f"  - scored {i}/{len(todo)} (checkpoint saved)")
+            logger.info(f"  - scored {i}/{len(todo)} (checkpoint saved)")
 
     # 3) 스무딩 → 후보 → 20초 기준 선택
     s_smooth = smooth_scores(scores, k=smooth_k)

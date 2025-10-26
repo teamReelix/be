@@ -6,10 +6,13 @@ from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, R
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from threading import Lock
 
 import highlight_generator as hg
 from dotenv import load_dotenv
 import boto3
+
+from progress_state import progress_data, progress_lock
 
 # --- 로깅 설정 ---
 logging.basicConfig(level=logging.INFO)
@@ -46,6 +49,7 @@ s3_client = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     region_name=AWS_REGION
 )
+
 
 def upload_to_s3(file_path: str, s3_key: str) -> str:
     """파일을 S3에 업로드하고 public URL 반환"""
@@ -163,3 +167,8 @@ async def get_highlight_video(filename: str):
     except s3_client.exceptions.ClientError:
         logger.warning(f"S3 파일 없음: {filename}")
         return JSONResponse(status_code=404, content={"status": "processing", "message": "파일이 아직 처리 중이거나 존재하지 않습니다."})
+
+@app.get("/progress")
+async def get_progress():
+    with progress_lock:
+        return JSONResponse(progress_data)

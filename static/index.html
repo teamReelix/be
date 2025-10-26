@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>비디오 하이라이트 생성기</title>
     <style>
-        /* 다크 모드 테마 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             display: flex;
@@ -13,11 +12,11 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #121212; /* 어두운 배경색 */
-            color: #e0e0e0; /* 밝은 글자색 */
+            background-color: #121212;
+            color: #e0e0e0;
         }
         .container {
-            background: #1e1e1e; /* 본문 배경색 */
+            background: #1e1e1e;
             padding: 2rem 3rem;
             border-radius: 12px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
@@ -26,15 +25,8 @@
             max-width: 500px;
             border: 1px solid #333;
         }
-        h1 {
-            color: #64b5f6; /* 제목 색상 (하늘색) */
-            margin-bottom: 1.5rem;
-        }
-        #upload-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
+        h1 { color: #64b5f6; margin-bottom: 1.5rem; }
+        #upload-form { display: flex; flex-direction: column; gap: 1.5rem; }
         .file-input-wrapper {
             border: 2px dashed #444;
             border-radius: 8px;
@@ -43,17 +35,11 @@
             transition: background-color 0.2s, border-color 0.2s;
         }
         .file-input-wrapper:hover, .file-input-wrapper.dragover {
-             background-color: #2a2a2a;
-             border-color: #64b5f6;
+            background-color: #2a2a2a;
+            border-color: #64b5f6;
         }
-        #video-file {
-            display: none;
-        }
-        #file-name {
-            margin-top: 1rem;
-            font-weight: 500;
-            color: #aaa;
-        }
+        #video-file { display: none; }
+        #file-name { margin-top: 1rem; font-weight: 500; color: #aaa; }
         button {
             background-color: #64b5f6;
             color: #121212;
@@ -65,14 +51,8 @@
             cursor: pointer;
             transition: background-color 0.2s, box-shadow 0.2s;
         }
-        button:disabled {
-            background-color: #444;
-            color: #777;
-            cursor: not-allowed;
-        }
-        button:not(:disabled):hover {
-            background-color: #82e9de;
-        }
+        button:disabled { background-color: #444; color: #777; cursor: not-allowed; }
+        button:not(:disabled):hover { background-color: #82e9de; }
         #status {
             margin-top: 1.5rem;
             padding: 1rem;
@@ -80,53 +60,38 @@
             background-color: #2c2c2c;
             min-height: 50px;
             display: flex;
-            flex-direction: column; /* 세로 정렬을 위해 추가 */
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center; /* 텍스트 중앙 정렬 */
+            text-align: center;
             line-height: 1.5;
         }
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            width: 24px;
-            height: 24px;
+            border: 4px solid rgba(255,255,255,0.1);
+            width: 24px; height: 24px;
             border-radius: 50%;
             border-left-color: #64b5f6;
             animation: spin 1s ease infinite;
-            margin-bottom: 10px; /* 텍스트와의 간격 */
+            margin-bottom: 10px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        a > button { background-color: #81c784; color: #121212; }
+        a > button:hover { background-color: #a5d6a7; }
+        pre { background-color: #111; color: #ff7675; padding: 1rem; border-radius: 8px;
+              text-align: left; white-space: pre-wrap; word-wrap: break-word;
+              font-family: 'Courier New', Courier, monospace; font-size: 0.85rem;
+              margin-top: 1rem; max-height: 200px; overflow-y: auto; width: 100%; box-sizing: border-box; }
+        .progress-bar-container {
+            width: 80%; height: 20px; background-color: #333;
+            border-radius: 8px; margin-top: 10px;
         }
-        a > button {
-             background-color: #81c784; /* 다운로드 버튼 (녹색) */
-             color: #121212;
-        }
-        a > button:hover {
-            background-color: #a5d6a7;
-        }
-        /* 오류 메시지를 보기 좋게 표시하기 위한 스타일 추가 */
-        pre {
-            background-color: #111;
-            color: #ff7675;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: left;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.85rem;
-            margin-top: 1rem;
-            max-height: 200px;
-            overflow-y: auto;
-            width: 100%;
-            box-sizing: border-box;
+        .progress-bar-fill {
+            height: 100%; width: 0%; background-color: #64b5f6; border-radius: 8px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+<div class="container">
     <h1>AI 비디오 하이라이트</h1>
     <form id="upload-form">
         <label for="video-file" class="file-input-wrapper" id="drop-area">
@@ -137,16 +102,9 @@
 
         <div style="margin-top: 1rem; text-align: left;">
             <label for="target-minutes" style="font-weight: 500; color: #ccc;">하이라이트 길이 (분)</label><br>
-            <input
-                type="number"
-                id="target-minutes"
-                name="target_minutes"
-                min="1"
-                max="30"
-                value="5"
-                required
-                style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
-                       border: 1px solid #555; background-color: #1e1e1e; color: #e0e0e0;">
+            <input type="number" id="target-minutes" name="target_minutes" min="1" max="30" value="5"
+                   required style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
+                   border: 1px solid #555; background-color: #1e1e1e; color: #e0e0e0;">
         </div>
 
         <button type="submit" id="submit-button" disabled>하이라이트 생성 시작</button>
@@ -156,134 +114,107 @@
     </div>
 </div>
 
-    <script>
-    const form = document.getElementById('upload-form');
-    const videoFileInput = document.getElementById('video-file');
-    const submitButton = document.getElementById('submit-button');
-    const statusDiv = document.getElementById('status');
-    const fileNameSpan = document.getElementById('file-name');
-    const dropArea = document.getElementById('drop-area');
+<script>
+const form = document.getElementById('upload-form');
+const videoFileInput = document.getElementById('video-file');
+const submitButton = document.getElementById('submit-button');
+const statusDiv = document.getElementById('status');
+const fileNameSpan = document.getElementById('file-name');
+const dropArea = document.getElementById('drop-area');
 
-    videoFileInput.addEventListener('change', () => {
-        const file = videoFileInput.files[0];
-        if (file) {
-            fileNameSpan.textContent = `선택된 파일: ${file.name}`;
-            submitButton.disabled = false;
-        } else {
-            fileNameSpan.textContent = '선택된 파일 없음';
-            submitButton.disabled = true;
-        }
-    });
+videoFileInput.addEventListener('change', () => {
+    const file = videoFileInput.files[0];
+    submitButton.disabled = !file;
+    fileNameSpan.textContent = file ? `선택된 파일: ${file.name}` : '선택된 파일 없음';
+});
 
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false);
-    });
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropArea.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }, false));
+['dragenter','dragover'].forEach(ev => dropArea.addEventListener(ev, () => dropArea.classList.add('dragover'), false));
+['dragleave','drop'].forEach(ev => dropArea.addEventListener(ev, () => dropArea.classList.remove('dragover'), false));
+dropArea.addEventListener('drop', e => { videoFileInput.files = e.dataTransfer.files; videoFileInput.dispatchEvent(new Event('change')); }, false);
 
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('video', videoFileInput.files[0]);
+    formData.append('target_minutes', document.getElementById('target-minutes').value);
+
+    submitButton.disabled = true;
+    submitButton.textContent = '업로드 중...';
+    statusDiv.innerHTML = '<div class="spinner"></div><p>동영상을 서버로 업로드하는 중입니다...</p>';
+
+    try {
+        const response = await fetch('/upload-video/', { method: 'POST', body: formData });
+        const result = await response.json();
+
+        if (response.status === 202) {
+            statusDiv.innerHTML = `<p>${result.message}<br>결과 파일명: <strong>${result.result_filename}</strong></p>`;
+            startProgressPolling();
+            pollForResult(result.check_status_url, result.result_filename);
+        } else throw new Error(result.detail || '알 수 없는 오류가 발생했습니다.');
+    } catch (err) {
+        statusDiv.innerHTML = `<p style="color:#ff7675;"><strong>오류:</strong> ${err.message}</p>`;
+        resetUI();
     }
+});
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
-    });
+function resetUI() {
+    submitButton.textContent = '하이라이트 생성 시작';
+    submitButton.disabled = true;
+    fileNameSpan.textContent = '선택된 파일 없음';
+}
 
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
-    });
+// --- 진행률 폴링 ---
+let progressInterval;
+function startProgressPolling() {
+    if (progressInterval) clearInterval(progressInterval);
 
-    dropArea.addEventListener('drop', (e) => {
-        videoFileInput.files = e.dataTransfer.files;
-        videoFileInput.dispatchEvent(new Event('change'));
-    }, false);
+    // 진행률 UI 초기화
+    statusDiv.innerHTML = '<div class="spinner"></div><p>진행률을 불러오는 중...</p>';
+    const barContainer = document.createElement('div');
+    barContainer.className = 'progress-bar-container';
+    const barFill = document.createElement('div');
+    barFill.className = 'progress-bar-fill';
+    barContainer.appendChild(barFill);
+    const progressText = document.createElement('p');
+    progressText.style.marginTop = '5px';
+    statusDiv.appendChild(barContainer);
+    statusDiv.appendChild(progressText);
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData();
-        formData.append('video', videoFileInput.files[0]);
-        const targetMinutes = document.getElementById('target-minutes').value;
-        formData.append('target_minutes', targetMinutes);
-
-        submitButton.disabled = true;
-        submitButton.textContent = '업로드 중...';
-        statusDiv.innerHTML = '<div class="spinner"></div><p>동영상을 서버로 업로드하는 중입니다...</p>';
-
+    progressInterval = setInterval(async () => {
         try {
-            const response = await fetch('/upload-video/', {
-                method: 'POST',
-                body: formData,
-            });
+            const res = await fetch('/progress');
+            const data = await res.json();
+            const percent = data.total ? (data.done/data.total)*100 : 0;
+            barFill.style.width = percent.toFixed(1)+'%';
+            progressText.textContent = `진행률: ${percent.toFixed(1)}% (윈도우 ${data.done}/${data.total}, ${data.current_start.toFixed(2)}s 처리 중)`;
 
-            const result = await response.json();
-
-            if (response.status === 202) {
-                statusDiv.innerHTML = `<p>${result.message}<br>결과 파일명: <strong>${result.result_filename}</strong></p>`;
-                pollForResult(result.check_status_url, result.result_filename);
-            } else {
-                throw new Error(result.detail || '알 수 없는 오류가 발생했습니다.');
-            }
-        } catch (error) {
-            statusDiv.innerHTML = `<p style="color: #ff7675;"><strong>오류 발생:</strong> ${error.message}</p>`;
-            resetUI();
+            if (data.done >= data.total && data.total > 0) clearInterval(progressInterval);
+        } catch(err) {
+            console.error('진행률 폴링 오류:', err);
         }
-    });
+    }, 5000);
+}
 
-    // --- 결과 확인 폴링 함수 (수정: 5초마다) ---
-    function pollForResult(url, filename) {
-        statusDiv.innerHTML = '<div class="spinner"></div><p>하이라이트를 생성하고 있습니다. 잠시만 기다려주세요...</p>';
-
-        const interval = setInterval(async () => {
-            try {
-                const response = await fetch(url);
-
-                if (response.status === 200) { // presigned URL 반환
-                    clearInterval(interval);
-                    const result = await response.json();
-
-                    if (result.status === "done" && result.s3_url) {
-                        // 다운로드 버튼 생성
-                        statusDiv.innerHTML = `
-                            <div>
-                                <p style="color: #81c784; margin-bottom: 15px;"><strong>하이라이트 생성 완료!</strong></p>
-                                <a href="${result.s3_url}" download="${filename}" title="파일 다운로드: ${filename}">
-                                    <button>다운로드</button>
-                                </a>
-                            </div>`;
-                        resetUI();
-                    } else {
-                        statusDiv.innerHTML = `<p>아직 하이라이트가 처리 중입니다...</p>`;
-                    }
-
-                } else if (response.status === 404) { // 아직 처리 중
-                    console.log('아직 처리 중...');
-                } else { // 기타 서버 오류
-                    throw new Error(`서버 응답 오류: ${response.status}`);
+// --- 결과 확인 폴링 ---
+function pollForResult(url, filename) {
+    const resultInterval = setInterval(async () => {
+        try {
+            const res = await fetch(url);
+            if (res.status === 200) {
+                clearInterval(resultInterval);
+                const result = await res.json();
+                if (result.status==="done" && result.s3_url) {
+                    statusDiv.innerHTML = `<p style="color:#81c784; margin-bottom:15px;"><strong>하이라이트 생성 완료!</strong></p>
+                    <a href="${result.s3_url}" download="${filename}" title="다운로드">
+                        <button>다운로드</button>
+                    </a>`;
+                    resetUI();
                 }
-            } catch (error) {
-                clearInterval(interval);
-                statusDiv.innerHTML = `<p style="color: #ff7675;"><strong>결과 확인 중 오류:</strong> ${error.message}</p>`;
-                resetUI();
             }
-        }, 5000); // ✅ 5초마다 확인
-    }
-
-    function resetUI() {
-        submitButton.textContent = '하이라이트 생성 시작';
-        submitButton.disabled = true;
-        fileNameSpan.textContent = '선택된 파일 없음';
-    }
-
-    // HTML 태그를 텍스트로 표시하기 위한 유틸리티 함수
-    function escapeHtml(unsafe) {
-        return unsafe
-             .replace(/&/g, "&amp;")
-             .replace(/</g, "&lt;")
-             .replace(/>/g, "&gt;")
-             .replace(/"/g, "&quot;")
-             .replace(/'/g, "&#039;");
-    }
-    </script>
-
+        } catch(err) { console.error('결과 확인 오류:', err); }
+    }, 5000);
+}
+</script>
 </body>
 </html>
