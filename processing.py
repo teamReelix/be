@@ -1,5 +1,5 @@
 import os
-import highlight_generator as hg
+from model_v1 import highlight_generator as hg
 from config import logger
 from s3_utils import upload_to_s3
 from model import get_model

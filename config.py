@@ -37,4 +37,4 @@ s3_client = boto3.client(
 )
 
 # 상수
-NUM_FRAMES = 8
+# NUM_FRAMES = 8

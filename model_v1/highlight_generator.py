@@ -1,20 +1,19 @@
-import os, re, glob, json, math, tempfile, subprocess, random, time
+import os, re, glob, json, tempfile, subprocess, time
 import numpy as np
-import torch, torch.nn as nn, torch.nn.functional as F
+import torch, torch.nn.functional as F
 import torchaudio, librosa
 from decord import VideoReader, cpu
 import logging
 
-from models.av_fusion import AVFusion
-from config import NUM_FRAMES
+from model_v1.models.av_fusion import AVFusion
 
 from progress_state import progress_data, progress_lock
 
 logger = logging.getLogger(__name__)
 
 # === 경로 ===
-CKPT_DIR  = "./ckpts"     # 이미 학습된 체크포인트 폴더
-OUT_DIR   = "./exports"   # 하이라이트 결과물 저장 폴더
+CKPT_DIR = "./ckpts"  # 이미 학습된 체크포인트 폴더
+OUT_DIR = "./exports"  # 하이라이트 결과물 저장 폴더
 os.makedirs(OUT_DIR, exist_ok=True)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -24,7 +23,7 @@ SR = 16000
 MEL_BINS = 128
 WIN_SEC = 15.0      # 한 윈도우 길이 (권장: 12~20초 사이)
 STRIDE_SEC = 5.0    # 슬라이딩 간격
-# NUM_FRAMES = 8      # 영상 프레임 샘플 수 (학습과 동일)
+NUM_FRAMES = 8      # 영상 프레임 샘플 수 (학습과 동일)
 
 def load_model(ckpt_dir=CKPT_DIR):
     model = AVFusion().to(device)
@@ -33,7 +32,7 @@ def load_model(ckpt_dir=CKPT_DIR):
         ckpt = torch.load(alias, map_location=device, weights_only=False)
         logger.info("Loaded: %s", alias)
     else:
-        cand = sorted(glob.glob(os.path.join(ckpt_dir, "best_ep*_auc*.pt")))
+        cand = sorted(glob.glob(os.path.join(ckpt_dir, "best.pt")))
         assert cand, "ckpts 폴더에 가중치가 없습니다."
         def auc_from(p):
             m = re.search(r"auc([0-9.]+)\.pt$", os.path.basename(p))

@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
 
-from config import NUM_FRAMES
+# from config import NUM_FRAMES
+
+NUM_FRAMES = 8
 
 class SmallVideoCNN(nn.Module):
     def __init__(self, emb=256):

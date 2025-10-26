@@ -4,6 +4,7 @@ const submitButton = document.getElementById('submit-button');
 const statusDiv = document.getElementById('status');
 const fileNameSpan = document.getElementById('file-name');
 const dropArea = document.getElementById('drop-area');
+const modelSelect = document.getElementById('model-version');
 
 videoFileInput.addEventListener('change', () => {
     const file = videoFileInput.files[0];
@@ -21,6 +22,7 @@ form.addEventListener('submit', async (e) => {
     const formData = new FormData();
     formData.append('video', videoFileInput.files[0]);
     formData.append('target_minutes', document.getElementById('target-minutes').value);
+    formData.append('model_version', modelSelect.value);
 
     submitButton.disabled = true;
     submitButton.textContent = '업로드 중...';

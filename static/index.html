@@ -10,29 +10,52 @@
 <body>
 <div class="container">
     <h1>AI 비디오 하이라이트</h1>
+
     <form id="upload-form">
+        <!-- 파일 업로드 영역 -->
         <label for="video-file" class="file-input-wrapper" id="drop-area">
             <p>업로드할 동영상 파일을 여기에 드래그하거나 클릭하세요.</p>
             <span id="file-name">선택된 파일 없음</span>
         </label>
         <input type="file" id="video-file" name="video" accept="video/mp4,video/x-m4v,video/*" required>
 
-        <div style="margin-top: 1rem; text-align: left;">
-            <label for="target-minutes" style="font-weight: 500; color: #ccc;">하이라이트 길이 (분)</label><br>
-            <input type="number" id="target-minutes" name="target_minutes" min="1" max="30" value="5"
-                   required style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
-                   border: 1px solid #555; background-color: #1e1e1e; color: #e0e0e0;">
+        <!-- 하이라이트 길이 + 모델 선택 -->
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <!-- 왼쪽: 하이라이트 길이 -->
+            <div style="flex: 1;">
+                <label for="target-minutes" style="font-weight: 500; color: #ccc;">하이라이트 길이 (분)</label><br>
+                <input type="number" id="target-minutes" name="target_minutes" min="1" max="30" value="5"
+                       required style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
+                       border: 1px solid #555; background-color: #1e1e1e; color: #e0e0e0;">
+            </div>
+
+            <!-- 오른쪽: 모델 선택 -->
+            <div style="flex: 1;">
+                <label for="model-version" style="font-weight: 500; color: #ccc;">모델 선택</label><br>
+                <select id="model-version" name="model_version" required
+                        style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
+                        border: 1px solid #555; background-color: #1e1e1e; color: #e0e0e0;">
+                    <option value="v1">모델 v1</option>
+                    <option value="v2">모델 v2 logo</option>
+                </select>
+            </div>
         </div>
 
+        <!-- 제출 버튼 -->
         <button type="submit" id="submit-button" disabled>하이라이트 생성 시작</button>
     </form>
+
+    <!-- 상태 표시 -->
     <div id="status">
         <p>하이라이트 생성을 시작하려면 동영상을 업로드하세요.</p>
     </div>
+
+    <!-- 결과 표시 -->
     <div id="result">
         <!-- 영상 재생 + 다운로드 버튼 여기 추가 -->
     </div>
 </div>
+
 <script src="/static/js/main.js"></script>
 </body>
 </html>

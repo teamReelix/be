@@ -1,4 +1,4 @@
-import highlight_generator as hg
+from model_v1 import highlight_generator as hg
 from config import CKPT_DIR, logger
 
 # 로드된 모델을 저장할 전역 변수

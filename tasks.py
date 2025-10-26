@@ -1,6 +1,6 @@
 import os
 import logging
-from highlight_generator import export_highlight_from_full_mp4
+from model_v1.highlight_generator import export_highlight_from_full_mp4
 from s3_utils import upload_to_s3
 from progress_state import progress_data, progress_lock
 

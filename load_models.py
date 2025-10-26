@@ -1,4 +1,4 @@
-import highlight_generator as hg
+from model_v1 import highlight_generator as hg
 import logging
 
 logger = logging.getLogger(__name__)
