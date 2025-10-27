@@ -1,11 +1,20 @@
 import os
 from importlib import import_module
+from typing import Optional
+
 from config import logger
 from s3_utils import upload_to_s3
 from model import get_model
 
 
-def process_highlight(local_path: str, filename: str, target_minutes: int, result_filename: str, model_version="v1"):
+def process_highlight(
+    local_path: str,
+    filename: str,
+    target_minutes: int,
+    result_filename: str,
+    model_version: str = "v1",
+    logo_url: Optional[str] = None  # 새로 추가
+):
     """하이라이트 생성, S3 업로드, 로컬 파일 삭제를 수행하는 백그라운드 작업"""
 
     model = get_model(model_version)

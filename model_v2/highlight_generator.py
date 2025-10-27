@@ -567,10 +567,10 @@ def merge_intervals(cuts, join_gap=0.5):
 
     return merged
 ## 테스트
-LOGOS = [
-    f"{ASSETS_DIR}/fa_cup_logo_1.png",
-    f"{ASSETS_DIR}/fa_cup_logo_2.png",
-]
+# LOGOS = [
+#     f"{ASSETS_DIR}/fa_cup_logo_1.png",
+#     f"{ASSETS_DIR}/fa_cup_logo_2.png",
+# ]
 '''하이라이트 내보내기'''
 def export_highlight_from_full_mp4(
     full_mp4_path,
@@ -584,7 +584,7 @@ def export_highlight_from_full_mp4(
     align_to_audio_onset=True,
     onset_pre_sec=20.0,
     onset_post_sec=20.0,
-    logo_templates=LOGOS,
+    logo_templates=None,
     proxy_height=540,
 ):
     base = pathlib.Path(full_mp4_path).stem

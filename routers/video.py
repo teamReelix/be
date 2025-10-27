@@ -1,6 +1,7 @@
 import os
 import shutil
 import uuid
+from typing import Optional
 from fastapi import (
     APIRouter, UploadFile, File, BackgroundTasks,
     HTTPException, Form
@@ -21,7 +22,8 @@ async def upload_video_for_highlight(
         background_tasks: BackgroundTasks,
         video: UploadFile = File(...),
         target_minutes: int = Form(5),
-        model_version: str = Form("v1")
+        model_version: str = Form("v1"),
+        logo: Optional[UploadFile] = File(None)  # v2일 때만 업로드될 로고
 ):
     if get_model() is None:
         raise HTTPException(status_code=503, detail="모델이 로드되지 않아 서비스를 사용할 수 없습니다.")
@@ -45,10 +47,29 @@ async def upload_video_for_highlight(
     original_s3_key = f"uploads/{input_filename}"
     original_s3_url = upload_to_s3(input_path, original_s3_key)
 
-    # --- 결과 파일 이름 미리 계산 ---
+    # 모델 v2 로고 저장 경로
+    ASSETS_DIR = os.path.join(os.path.dirname(__file__), "model_v2", "assets")
+    os.makedirs(ASSETS_DIR, exist_ok=True)
+
+    # --- 로고 파일 처리 (모델 v2인 경우만, 서버 로컬에 저장) ---
+    logo_path = None
+    if model_version == "v2" and logo:
+        try:
+            logo_filename = f"{uuid.uuid4().hex}_{logo.filename}"
+            logo_path = os.path.abspath(os.path.join(ASSETS_DIR, logo_filename))
+
+            with open(logo_path, "wb") as buffer:
+                shutil.copyfileobj(logo.file, buffer)
+
+            logger.info(f"model_v2/assets에 로고 저장 완료: {logo_path}")
+        except Exception as e:
+            logger.warning(f"로고 저장 실패 (무시하고 진행): {e}")
+            logo_path = None
+
+    # --- 결과 파일 이름 ---
     result_filename = f"{os.path.splitext(input_filename)[0]}_HIGHLIGHT_{target_minutes}m.mp4"
 
-    # --- 진행률 초기화 (새 영상 업로드 시작 시) ---
+    # --- 진행률 초기화 ---
     with progress_lock:
         progress_data["total"] = 0
         progress_data["done"] = 0
@@ -61,7 +82,8 @@ async def upload_video_for_highlight(
         input_filename,
         target_minutes,
         result_filename,
-        model_version
+        model_version,
+        logo_path  # 서버 로컬 경로 전달
     )
 
     return JSONResponse(
