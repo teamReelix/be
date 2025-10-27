@@ -1,19 +1,23 @@
 import os
-from model_v1 import highlight_generator as hg
+from importlib import import_module
 from config import logger
 from s3_utils import upload_to_s3
 from model import get_model
 
 
-def process_highlight(local_path: str, filename: str, target_minutes: int, result_filename: str):
+def process_highlight(local_path: str, filename: str, target_minutes: int, result_filename: str, model_version="v1"):
     """하이라이트 생성, S3 업로드, 로컬 파일 삭제를 수행하는 백그라운드 작업"""
 
-    model = get_model()
+    model = get_model(model_version)
     if model is None:
-        logger.error("모델이 로드되지 않아 하이라이트 처리를 중단합니다.")
+        logger.error(f"{model_version} 모델이 로드되지 않아 하이라이트 처리를 중단합니다.")
         return
 
     try:
+        # --- 모델 버전에 따라 highlight_generator 불러오기 ---
+        hg_module_name = f"model_{model_version}.highlight_generator"
+        hg = import_module(hg_module_name)
+
         # --- 로컬 하이라이트 생성 ---
         result = hg.export_highlight_from_full_mp4(local_path, target_minutes)
         result_path = result[0] if isinstance(result, (list, tuple)) else result
@@ -22,15 +26,15 @@ def process_highlight(local_path: str, filename: str, target_minutes: int, resul
         if not os.path.exists(result_path):
             raise FileNotFoundError(f"하이라이트 파일이 생성되지 않음: {result_path}")
 
-        logger.info(f"하이라이트 로컬 생성 완료: {result_path}")
+        logger.info(f"[{model_version}] 하이라이트 로컬 생성 완료: {result_path}")
 
         # --- S3 업로드 ---
         highlight_s3_key = f"exports/{result_filename}"
         highlight_s3_url = upload_to_s3(result_path, highlight_s3_key)
-        logger.info(f"하이라이트 S3 업로드 완료: {highlight_s3_url}")
+        logger.info(f"[{model_version}] 하이라이트 S3 업로드 완료: {highlight_s3_url}")
 
     except Exception as e:
-        logger.error(f"하이라이트 처리 실패 (파일: {filename}): {e}")
+        logger.error(f"[{model_version}] 하이라이트 처리 실패 (파일: {filename}): {e}")
 
     finally:
         # --- 로컬 파일 삭제 ---

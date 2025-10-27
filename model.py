@@ -1,22 +1,34 @@
-from model_v1 import highlight_generator as hg
 from config import CKPT_DIR, logger
 
-# 로드된 모델을 저장할 전역 변수
-model_instance = None
+# 버전별 로드된 모델을 저장할 전역 변수
+_models = {}
 
 def load_model_on_startup():
-    """서버 시작 시 모델을 로드합니다."""
-    global model_instance
-    logger.info("서버 시작... 모델 로드 중...")
-    try:
-        hg.CKPT_DIR = CKPT_DIR  # hg 모듈의 경로 설정
-        model_instance = hg.load_model()
-        hg.model = model_instance  # hg 모듈 내부에서도 참조할 수 있도록 설정
-        logger.info("모델 로드 완료.")
-    except Exception as e:
-        logger.error(f"모델 로드 실패: {e}")
-        model_instance = None
+    """서버 시작 시 model_v1과 model_v2 모델을 모두 로드합니다."""
+    from model_v1 import highlight_generator as hg_v1
+    from model_v2 import highlight_generator as hg_v2
 
-def get_model():
-    """로드된 모델 인스턴스를 반환합니다."""
-    return model_instance
+    logger.info("서버 시작... 모델 로드 중...")
+
+    try:
+        hg_v1.CKPT_DIR = CKPT_DIR
+        _models["v1"] = hg_v1.load_model()
+        hg_v1.model = _models["v1"]
+        logger.info("model_v1 로드 완료.")
+    except Exception as e:
+        logger.error(f"model_v1 로드 실패: {e}")
+        _models["v1"] = None
+
+    try:
+        hg_v2.CKPT_DIR = CKPT_DIR
+        _models["v2"] = hg_v2.load_model()
+        hg_v2.model = _models["v2"]
+        logger.info("model_v2 로드 완료.")
+    except Exception as e:
+        logger.error(f"model_v2 로드 실패: {e}")
+        _models["v2"] = None
+
+
+def get_model(version: str = "v1"):
+    """요청된 버전에 해당하는 모델 인스턴스를 반환합니다."""
+    return _models.get(version)

@@ -20,7 +20,8 @@ router = APIRouter()
 async def upload_video_for_highlight(
         background_tasks: BackgroundTasks,
         video: UploadFile = File(...),
-        target_minutes: int = Form(5)
+        target_minutes: int = Form(5),
+        model_version: str = Form("v1")
 ):
     if get_model() is None:
         raise HTTPException(status_code=503, detail="모델이 로드되지 않아 서비스를 사용할 수 없습니다.")
@@ -59,7 +60,8 @@ async def upload_video_for_highlight(
         input_path,
         input_filename,
         target_minutes,
-        result_filename
+        result_filename,
+        model_version
     )
 
     return JSONResponse(
