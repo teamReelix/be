@@ -680,7 +680,7 @@ def export_highlight_from_full_mp4(
             t1_rule = min(duration, ed_cut)
             _, _, spans_rl = scan_logo_range_multiscale(
                 proxy_mp4, t0_rule, t1_rule, logo_templates,
-                region="full", step=0.20, thr=0.60, min_hold=0.10, sigma=3
+                region="full", step=0.16, thr=0.43, min_hold=0.10, sigma=3
             )
 
             if len(spans_rl) >= 2:
@@ -694,7 +694,7 @@ def export_highlight_from_full_mp4(
             else:
                 st_cut, ed_cut = trim_by_logos_inside_clip_ms(
                     proxy_mp4, st_cut, ed_cut, duration, logo_templates,
-                    step=0.20, thr=0.60, min_hold=0.10, sigma=3,
+                    step=0.16, thr=0.43, min_hold=0.10, sigma=3,
                     start_pad=0.18, end_pad=0.00,
                     lead_window=15.0, lead_prelook=12.0, lead_end_tol=10.0,
                     tail_window=15.0
