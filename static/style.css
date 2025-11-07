@@ -57,6 +57,12 @@ button:disabled { background-color: #444; color: #777; cursor: not-allowed; }
 
 button:not(:disabled):hover { background-color: #82e9de; }
 
+button.small-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
 #status {
     margin-top: 1.5rem;
     padding: 1rem;
