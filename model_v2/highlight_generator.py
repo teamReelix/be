@@ -11,6 +11,8 @@ import torchaudio, librosa, cv2
 from decord import VideoReader, cpu
 import logging
 
+from progress_state import progress_lock, progress_data
+
 logger = logging.getLogger(__name__)
 
 CKPT_DIR   = "./ckpts"
@@ -635,9 +637,18 @@ def export_highlight_from_full_mp4(
 
     logger.info(f"[INFO] scoring: total={len(starts)} todo={len(todo)} (win={win_sec}s, stride={stride_sec}s)")
     for k, (i, st) in enumerate(todo, 1):
+        # v2 모델 점수 계산
         s = score_window_proxy(full_mp4_path, proxy_mp4, st, win_sec, model, device)
         scores[i] = float(s)
         cache[f"{st:.3f}"] = float(s)
+
+        # 전역 진행률 갱신 (JS에서 /progress 폴링용)
+        with progress_lock:
+            progress_data["done"] = k
+            progress_data["total"] = len(todo)
+            progress_data["current_start"] = st
+
+        # 체크포인트 저장
         if (k % 20) == 0 or k == len(todo):
             _safe_json_dump(cache, score_path)
             logger.info(f" - scored {k}/{len(todo)} (checkpoint saved)")

@@ -294,7 +294,7 @@ def concat_mp4s(paths, out_path):
 
 
 # ----------------------------
-# ✅ 오디오 온셋 기반 리센터링 (13초 + 7초)
+# 오디오 온셋 기반 리센터링 (13초 + 7초)
 # ----------------------------
 def _extract_audio_chunk(full_mp4, start_sec, duration_sec, sr=SR):
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:

@@ -49,21 +49,21 @@ form.addEventListener('submit', e => {
 });
 
 // ---------------- 로고 모달 이벤트 ----------------
-uploadLogoBtn.addEventListener('click', () => {
-    const file = logoFileInput.files[0];
-    if (!file) return alert('로고 파일을 선택해주세요!');
-    logoModal.style.display = 'none';
-    uploadVideo(file);
-});
-
-skipLogoBtn.addEventListener('click', () => {
-    logoModal.style.display = 'none';
-    uploadVideo(null);
-});
-
-cancelLogoBtn.addEventListener('click', () => {
-    logoModal.style.display = 'none';
-});
+// uploadLogoBtn.addEventListener('click', () => {
+//     const file = logoFileInput.files[0];
+//     if (!file) return alert('로고 파일을 선택해주세요!');
+//     logoModal.style.display = 'none';
+//     uploadVideo(file);
+// });
+//
+// skipLogoBtn.addEventListener('click', () => {
+//     logoModal.style.display = 'none';
+//     uploadVideo(null);
+// });
+//
+// cancelLogoBtn.addEventListener('click', () => {
+//     logoModal.style.display = 'none';
+// });
 
 // ---------------- UI 초기화 ----------------
 function resetUI() {
@@ -97,7 +97,8 @@ function startProgressPolling() {
             const data = await res.json();
             const percent = data.total ? (data.done / data.total) * 100 : 0;
             barFill.style.width = percent.toFixed(1) + '%';
-            progressText.textContent = `진행률: ${percent.toFixed(1)}% (윈도우 ${data.done}/${data.total}, ${data.current_start.toFixed(2)}s 처리 중)`;
+            progressText.textContent = `진행률: ${percent.toFixed(1)}% (윈도우 ${data.done}/${data.total})`;
+            // progressText.textContent = `진행률: ${percent.toFixed(1)}% (윈도우 ${data.done}/${data.total}, ${data.current_start.toFixed(0)}초 처리 중)`;
 
             if (data.done >= data.total && data.total > 0) clearInterval(progressInterval);
         } catch (err) {
@@ -160,6 +161,7 @@ function pollForResult(url, filename) {
 
                     // 결과 영역 표시
                     const resultDiv = document.getElementById('result');
+                    resultDiv.style.display = 'block';
                     resultDiv.innerHTML = '';
 
                     const video = document.createElement('video');
