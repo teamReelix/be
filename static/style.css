@@ -131,13 +131,13 @@ html, body {
 /* 헤더 */
 header {
     display: flex;
-    align-items: center;       /* 수직 중앙 정렬 */
+    align-items: center;
     width: 100%;
-    padding: 10px 70px;        /* 좌우 40px 패딩 추가 */
+    padding: 10px 50px;
     background-color: #111;
+    box-sizing: border-box; /* padding을 width 안에 포함 */
 }
 /* 로고 */
 header img {
     height: 80px;
-    margin-left: 20px;
 }

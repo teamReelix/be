@@ -190,3 +190,15 @@ function pollForResult(url, filename) {
         }
     }, 5000);
 }
+
+
+// 로고 링크 선택
+const homeLink = document.querySelector('header a');
+
+// 클릭 시 경고
+homeLink.addEventListener('click', (e) => {
+    const leave = confirm("홈으로 돌아가면 진행 중인 작업이 사라질 수 있습니다. 계속 이동하시겠습니까?");
+    if (!leave) {
+        e.preventDefault(); // 사용자가 취소하면 이동 막기
+    }
+});
