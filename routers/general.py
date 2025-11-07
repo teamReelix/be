@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from starlette.responses import FileResponse
 
 from config import STATIC_DIR
 from progress_state import progress_data, progress_lock
@@ -18,3 +19,7 @@ async def read_index(request: Request):
 async def get_progress():
     with progress_lock:
         return JSONResponse(progress_data)
+
+@router.get("/faq")
+async def faq():
+    return FileResponse("static/faq.html")

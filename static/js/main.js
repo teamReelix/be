@@ -202,3 +202,13 @@ homeLink.addEventListener('click', (e) => {
         e.preventDefault(); // 사용자가 취소하면 이동 막기
     }
 });
+
+// 헤더에서 FAQ 링크 선택
+const faqLink = document.querySelector('a[href="/faq"]');
+
+faqLink.addEventListener('click', function(e) {
+    const proceed = confirm("현재 페이지를 벗어나면 진행 중인 작업이 사라질 수 있습니다. 계속 이동하시겠습니까?");
+    if (!proceed) {
+        e.preventDefault(); // 이동 취소
+    }
+});

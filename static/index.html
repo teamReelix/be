@@ -11,12 +11,18 @@
 <body>
 <header>
     <a href="/">
-    <img src="/static/images/web_logo_transparent.png" alt="홈">
-</a>
+        <img src="/static/images/web_logo_transparent.png" alt="홈">
+    </a>
+    <nav>
+        <ul>
+            <li><a href="/faq">자주 묻는 질문</a></li>
+            <li><a href="https://open.kakao.com/o/g8MubW0h" target="_blank" rel="noopener noreferrer">문의하기</a></li>
+        </ul>
+    </nav>
 </header>
 
 <div class="container">
-    <h1>축구 하이라이트</h1>
+    <h1>축구 하이라이트 제작</h1>
 
     <form id="upload-form">
         <!-- 파일 업로드 영역 -->
@@ -27,21 +33,17 @@
         <input type="file" id="video-file" name="video" accept="video/mp4,video/x-m4v,video/*" required>
 
         <!-- 하이라이트 길이 + 모델 선택 -->
-        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <div class="form-row">
             <!-- 왼쪽: 하이라이트 길이 -->
-            <div style="flex: 1;">
-                <label for="target-minutes" style="font-weight: 500; color: #ccc;">하이라이트 길이 (분)</label><br>
-                <input type="number" id="target-minutes" name="target_minutes" min="1" max="30" value="5"
-                       required style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
-                       border: 1px solid #555; background-color: #1e1e1e; color: #e0e0e0;">
+            <div>
+                <label for="target-minutes">하이라이트 길이 (분) [최대 30분]</label>
+                <input type="number" id="target-minutes" name="target_minutes" min="1" max="30" value="5" required>
             </div>
 
             <!-- 오른쪽: 모델 선택 -->
-            <div style="flex: 1;">
-                <label for="model-version" style="font-weight: 500; color: #ccc;">모델 선택</label><br>
-                <select id="model-version" name="model_version" required
-                        style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
-                        border: 1px solid #555; background-color: #1e1e1e; color: #e0e0e0;">
+            <div>
+                <label for="model-version">모델 선택</label>
+                <select id="model-version" name="model_version" required>
                     <option value="v1">모델 v1</option>
                     <option value="v2">모델 v2 logo</option>
                 </select>
