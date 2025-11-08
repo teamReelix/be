@@ -12,6 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const targetMinutesInput = document.getElementById("target-minutes");
   const statusDiv = document.getElementById("status");
 
+  logoInput.addEventListener("change", () => {
+    const fileNameSpan = document.getElementById("logo-file-name");
+    const file = logoInput.files[0];
+    fileNameSpan.textContent = file ? `선택된 파일: ${file.name}` : "선택된 파일 없음";
+  });
+
   async function startHighlightGeneration(logoFile) {
     // FormData 준비
     const formData = new FormData();
