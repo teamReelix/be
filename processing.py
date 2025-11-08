@@ -13,13 +13,13 @@ def process_highlight(
     target_minutes: int,
     result_filename: str,
     model_version: str = "v1",
-    logo_url: Optional[str] = None  # 새로 추가
+    logo_path: Optional[str] = None  # 로고 경로
 ):
     """하이라이트 생성, S3 업로드, 로컬 파일 삭제를 수행하는 백그라운드 작업"""
 
     model = get_model(model_version)
     if model is None:
-        logger.error(f"{model_version} 모델이 로드되지 않아 하이라이트 처리를 중단합니다.")
+        logger.info(f"{model_version} 모델이 로드되지 않아 하이라이트 처리를 중단합니다.")
         return
 
     try:
@@ -28,14 +28,25 @@ def process_highlight(
         hg = import_module(hg_module_name)
 
         # --- 로컬 하이라이트 생성 ---
-        result = hg.export_highlight_from_full_mp4(local_path, target_minutes)
+        if model_version == "v2":
+            # 로고 경로를 리스트로 전달 (함수 내부에서 처리됨)
+            logo_templates = [logo_path] if logo_path else []
+            result = hg.export_highlight_from_full_mp4(
+                local_path,
+                target_minutes,
+                logo_templates=logo_templates
+            )
+        else:
+            result = hg.export_highlight_from_full_mp4(local_path, target_minutes)
+
         result_path = result[0] if isinstance(result, (list, tuple)) else result
         result_path = os.path.abspath(str(result_path))
+        logger.info(f"[{model_version}] 하이라이트 결과 경로: {result_path}")
 
         if not os.path.exists(result_path):
             raise FileNotFoundError(f"하이라이트 파일이 생성되지 않음: {result_path}")
 
-        logger.info(f"[{model_version}] 하이라이트 로컬 생성 완료: {result_path}")
+        logger.info(f"[{model_version}] 하이라이트 로컬 생성 완료")
 
         # --- S3 업로드 ---
         highlight_s3_key = f"exports/{result_filename}"
@@ -43,7 +54,7 @@ def process_highlight(
         logger.info(f"[{model_version}] 하이라이트 S3 업로드 완료: {highlight_s3_url}")
 
     except Exception as e:
-        logger.error(f"[{model_version}] 하이라이트 처리 실패 (파일: {filename}): {e}")
+        logger.info(f"[{model_version}] 하이라이트 처리 실패 (파일: {filename}): {e}")
 
     finally:
         # --- 로컬 파일 삭제 ---
@@ -55,4 +66,5 @@ def process_highlight(
                 os.remove(result_path)
                 logger.info(f"하이라이트 로컬 파일 삭제: {result_path}")
         except Exception as e:
-            logger.error(f"로컬 파일 삭제 실패: {e}")
+            logger.info(f"로컬 파일 삭제 실패: {e}")
+
