@@ -47,8 +47,13 @@ async def upload_video_for_highlight(
     original_s3_key = f"uploads/{input_filename}"
     original_s3_url = upload_to_s3(input_path, original_s3_key)
 
+    if original_s3_url:
+        logger.info(f"[S3 Upload] 업로드 완료 : {original_s3_url}")
+    else:
+        logger.error(f"[S3 Upload] 업로드 실패 : {original_s3_key}")
+
     # 모델 v2 로고 저장 경로
-    ASSETS_DIR = os.path.join(os.path.dirname(__file__), "model_v2", "assets")
+    ASSETS_DIR = os.path.join(os.path.dirname(__file__), "..", "model_v2", "assets")
     os.makedirs(ASSETS_DIR, exist_ok=True)
 
     # --- 로고 파일 처리 (모델 v2인 경우만, 서버 로컬에 저장) ---
